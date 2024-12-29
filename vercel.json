@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "api/send-reminders": {
-      "runtime": "edge"
-    }
-  },
   "crons": [
     {
       "path": "/api/send-reminders",
