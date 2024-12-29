@@ -11,11 +11,14 @@ export default function Header() {
           GoalPost
         </Link>
         <div className="flex">
-          <Button asChild variant={"link"}>
+          <Button asChild variant={"link"} className="hidden md:block">
             <Link href={"/#create"}>Score a goal</Link>
           </Button>
-          <Button asChild variant={"link"}>
+          <Button asChild variant={"link"} className="hidden md:block">
             <Link href={"/#about"}>About</Link>
+          </Button>
+          <Button variant={"default"} >
+            <Link href={"https://github.com/kyrexi/goalpost"}>⭐ Star us on github</Link>
           </Button>
         </div>
       </nav>

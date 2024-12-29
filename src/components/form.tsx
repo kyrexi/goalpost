@@ -15,6 +15,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import Link from "next/link";
 
 export default function Form() {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -110,7 +111,12 @@ export default function Form() {
               />
             </div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex flex-col-reverse md:flex-row justify-between items-center gap-2">
+            <Button variant={"outline"} className="w-full">
+              <Link href={"https://github.com/kyrexi/goalpost"}>
+                ⭐ Star us on github
+              </Link>
+            </Button>
             <Button type="submit" className="w-full">
               Submit Event
             </Button>
