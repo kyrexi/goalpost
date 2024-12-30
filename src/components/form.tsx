@@ -16,21 +16,24 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import Link from "next/link";
+import Loader from "@/components/loader";
 
 export default function Form() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [text, setText] = useState("");
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!date || !text || !email) {
-      alert("Please fill in all fields.");
+      toast.error("Please fill all the fields.");
       return;
     }
 
     try {
+      setLoading(true);
       const response = await fetch("/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -53,6 +56,8 @@ export default function Form() {
     } catch (err) {
       console.error("Failed to submit goal:", err);
       toast.error("Failed to save goal. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -117,8 +122,11 @@ export default function Form() {
                 ⭐ Star us on github
               </Link>
             </Button>
-            <Button type="submit" className="w-full">
-              Submit Event
+            <Button
+              type="submit"
+              className={`w-full ${loading ? "cursor-not-allowed" : ""}`}
+            >
+              {loading ? <Loader /> : "Submit Goal"}
             </Button>
           </CardFooter>
         </form>
