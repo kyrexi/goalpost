@@ -1,0 +1,22 @@
+name: Send goal reminders
+
+on:
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+jobs:
+  send-reminders:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check API Endpoint to send reminders
+        id: send-reminders
+        env:
+          API_URL: ${{ secrets.API_URL }}
+          API_KEY: ${{ secrets.API_KEY }}
+        run: |
+          response=$(curl -X GET "$API_URL/api/send-reminders" \
+          -H "Authorization: Bearer $API_KEY")
+
+          echo "Response from the API: $response"
