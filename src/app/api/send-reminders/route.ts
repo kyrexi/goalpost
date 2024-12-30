@@ -71,24 +71,36 @@ export async function GET(req: Request) {
       return NextResponse.json({ message: "No reminders for today" });
     }
 
-    // Send emails using Nodemailer
-    for (const reminder of reminders) {
-      // Decrypt the goal before sending
-      const decryptedGoal = decrypt(reminder.goal);
+    // Send emails concurrently using Promise.all
+    const emailPromises = reminders.map(async (reminder) => {
+      try {
+        // Decrypt the goal before sending
+        const decryptedGoal = decrypt(reminder.goal);
 
-      // Create email options
-      const mailOptions = {
-        from: process.env.EMAIL_USER, // Sender address
-        to: reminder.email, // Recipient address
-        subject: "Your Goal Reminder 🚀", // Subject line
-        text: `Hi! Here's your reminder:\n\n${decryptedGoal}\n\nDid you achieve your goal?`, // Plain text body
-      };
+        // Create email options
+        const mailOptions = {
+          from: process.env.EMAIL_USER, // Sender address
+          to: reminder.email, // Recipient address
+          subject: "Your Goal Reminder 🚀", // Subject line
+          text: `Hi! Here's your reminder:\n\n${decryptedGoal}\n\nDid you achieve your goal?`, // Plain text body
+        };
 
-      // Send the email
-      await transporter.sendMail(mailOptions);
-    }
+        // Send the email
+        await transporter.sendMail(mailOptions);
+        return { success: true, email: reminder.email };
+      } catch (error: any) {
+        console.error(`Error sending email to ${reminder.email}:`, error);
+        return { success: false, email: reminder.email, error: error.message };
+      }
+    });
 
-    return NextResponse.json({ success: true, message: "Reminders sent" });
+    const emailResults = await Promise.all(emailPromises);
+
+    return NextResponse.json({
+      success: true,
+      message: "Reminders processed",
+      results: emailResults,
+    });
   } catch (error) {
     console.error("Error sending reminders:", error);
     return NextResponse.json(
