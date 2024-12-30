@@ -34,8 +34,25 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    // Extract and validate the Authorization token
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "Unauthorized: Missing or invalid token" },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.split(" ")[1];
+    if (token !== process.env.AUTH_TOKEN) {
+      return NextResponse.json(
+        { error: "Unauthorized: Invalid token" },
+        { status: 401 }
+      );
+    }
+
     // Connect to MongoDB
     await dbConnect();
 
@@ -71,7 +88,7 @@ export async function GET() {
       await transporter.sendMail(mailOptions);
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, message: "Reminders sent" });
   } catch (error) {
     console.error("Error sending reminders:", error);
     return NextResponse.json(
