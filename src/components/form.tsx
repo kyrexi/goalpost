@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,26 @@ export default function Form() {
   const [text, setText] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [minDate, setMinDate] = useState<Date>(new Date());
+
+  // Set minimum date to tomorrow in Indian timezone
+  useEffect(() => {
+    // Create a date object for the current time in Indian timezone (UTC+5:30)
+    const now = new Date();
+    const indiaTime = new Date(now.getTime() + 5.5 * 60 * 60 * 1000); // Add 5.5 hours for Indian timezone
+
+    // Set to the next day at 00:00:00
+    const tomorrow = new Date(indiaTime);
+    tomorrow.setDate(indiaTime.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+
+    setMinDate(tomorrow);
+
+    // If the currently selected date is today or in the past, update it to tomorrow
+    if (date && date <= tomorrow) {
+      setDate(tomorrow);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +68,7 @@ export default function Form() {
       if (data.success) {
         setEmail("");
         setText("");
-        setDate(new Date());
+        setDate(minDate);
         toast.success("Goal submitted successfully!");
       } else {
         toast.error("Failed to save goal. Please try again.");
@@ -109,10 +129,12 @@ export default function Form() {
               </Label>
               <Calendar
                 mode="single"
-                selected={date}
+                selected={minDate}
                 onSelect={setDate}
                 required
-                className="rounded-md border h-80"
+                className="rounded-md border"
+                disabled={(day) => day < minDate}
+                fromDate={minDate}
               />
             </div>
           </CardContent>
