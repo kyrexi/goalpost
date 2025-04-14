@@ -19,30 +19,59 @@ import Link from "next/link";
 import Loader from "@/components/loader";
 
 export default function Form() {
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [date, setDate] = useState<Date | undefined>(undefined);
   const [text, setText] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [minDate, setMinDate] = useState<Date>(new Date());
 
-  // Set minimum date to tomorrow in Indian timezone
+  // Set minimum date to tomorrow using UTC
   useEffect(() => {
-    // Create a date object for the current time in Indian timezone (UTC+5:30)
+    // Get current date in UTC
     const now = new Date();
-    const indiaTime = new Date(now.getTime() + 5.5 * 60 * 60 * 1000); // Add 5.5 hours for Indian timezone
 
-    // Set to the next day at 00:00:00
-    const tomorrow = new Date(indiaTime);
-    tomorrow.setDate(indiaTime.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
+    // Set to the next day at 00:00:00 UTC
+    const tomorrow = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate() + 1,
+        0,
+        0,
+        0,
+        0
+      )
+    );
 
     setMinDate(tomorrow);
 
-    // If the currently selected date is today or in the past, update it to tomorrow
-    if (date && date <= tomorrow) {
-      setDate(tomorrow);
+    // If no date has been selected yet, set to tomorrow
+    if (!date) {
+      setDate(new Date(tomorrow));
     }
-  }, []);
+  }, [date]);
+
+  // Handle calendar date selection
+  const handleDateSelect = (selectedDate: Date | undefined) => {
+    if (selectedDate) {
+      // Convert the selected date to UTC midnight
+      const utcDate = new Date(
+        Date.UTC(
+          selectedDate.getFullYear(),
+          selectedDate.getMonth(),
+          selectedDate.getDate(),
+          0,
+          0,
+          0,
+          0
+        )
+      );
+
+      setDate(utcDate);
+    } else {
+      setDate(undefined);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +97,6 @@ export default function Form() {
       if (data.success) {
         setEmail("");
         setText("");
-        setDate(minDate);
         toast.success("Goal submitted successfully!");
       } else {
         toast.error("Failed to save goal. Please try again.");
@@ -95,7 +123,7 @@ export default function Form() {
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4 h-[600px]">
+          <CardContent className="space-y-4 h-full">
             <div className="space-y-2">
               <Label className="text-sm font-medium text-gray-700">Email</Label>
               <Input
@@ -129,8 +157,8 @@ export default function Form() {
               </Label>
               <Calendar
                 mode="single"
-                selected={minDate}
-                onSelect={setDate}
+                selected={date}
+                onSelect={handleDateSelect}
                 required
                 className="rounded-md border"
                 disabled={(day) => day < minDate}
